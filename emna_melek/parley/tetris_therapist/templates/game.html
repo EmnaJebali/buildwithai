@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Tetris Therapist - Game{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <div class="game-header">
+        <h1 class="game-title">TETRIS THERAPIST</h1>
+        <a href="{% url 'index' %}" class="home-link">← Home</a>
+    </div>
+    
+    <div class="game-layout">
+        <!-- Left sidebar -->
+        <div class="sidebar left-sidebar">
+            <div class="info-panel">
+                <h3>Held Piece</h3>
+                <canvas id="held-canvas" width="80" height="80"></canvas>
+                <p class="hint">Press 'C' to hold</p>
+            </div>
+        </div>
+        
+        <!-- Main game area -->
+        <div class="main-game">
+            <canvas id="game-canvas" width="300" height="600"></canvas>
+            <div id="game-over-overlay" class="game-over-overlay hidden">
+                <div class="game-over-content">
+                    <h2>GAME OVER</h2>
+                    <div id="final-score"></div>
+                    <div id="therapy-report"></div>
+                    <div class="button-group">
+                        <button id="restart-btn" class="restart-button">Start New Session</button>
+                        <button id="pause-restart-btn" class="restart-button" style="display: none;">Restart Game</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dr. Tetris Icon - Always visible next to game -->
+            <div class="therapist-icon-container">
+                <div class="therapist-icon-wrapper" id="therapist-icon-wrapper">
+                    <svg class="therapist-icon-svg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Head -->
+                        <circle cx="100" cy="80" r="45" fill="#d4c4b0" stroke="#8b7355" stroke-width="3"/>
+                        <!-- Hair -->
+                        <ellipse cx="100" cy="40" rx="43" ry="22" fill="#4a4238"/>
+                        <!-- Glasses -->
+                        <circle cx="85" cy="75" r="10" fill="none" stroke="#6b5d4f" stroke-width="2"/>
+                        <circle cx="115" cy="75" r="10" fill="none" stroke="#6b5d4f" stroke-width="2"/>
+                        <line x1="95" y1="75" x2="105" y2="75" stroke="#6b5d4f" stroke-width="2"/>
+                        <!-- Eyes -->
+                        <circle class="eye-left" cx="85" cy="75" r="3.5" fill="#4a4238"/>
+                        <circle class="eye-right" cx="115" cy="75" r="3.5" fill="#4a4238"/>
+                        <!-- Nose -->
+                        <ellipse cx="100" cy="90" rx="2.5" ry="5" fill="#8b7355" opacity="0.5"/>
+                        <!-- Mouth - animated when talking -->
+                        <path class="mouth" d="M 90 105 Q 100 112 110 105" stroke="#4a4238" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <!-- Suit -->
+                        <path d="M 70 130 L 70 190 L 130 190 L 130 130 L 115 130 L 115 150 L 85 150 L 85 130 Z" 
+                              fill="#6b5d4f" stroke="#4a4238" stroke-width="2"/>
+                        <!-- Shirt -->
+                        <path d="M 85 130 L 85 150 L 115 150 L 115 130 L 108 130 L 108 145 L 92 145 L 92 130 Z" 
+                              fill="#f5f1e8" stroke="#8b7355" stroke-width="1.5"/>
+                        <!-- Tie -->
+                        <path d="M 100 130 L 98 170 L 100 175 L 102 170 Z" fill="#4a4238"/>
+                    </svg>
+                </div>
+                <!-- Speech bubble that appears when talking -->
+                <div class="therapist-speech-bubble hidden" id="therapist-speech-bubble">
+                    <div class="speech-bubble-content" id="speech-bubble-text"></div>
+                    <div class="speech-bubble-tail"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right sidebar -->
+        <div class="sidebar right-sidebar">
+            <div class="info-panel">
+                <h3>Score</h3>
+                <div id="score" class="stat-value">0</div>
+                
+                <h3>Lines</h3>
+                <div id="lines" class="stat-value">0</div>
+                
+                <h3>Level</h3>
+                <div id="level" class="stat-value">1</div>
+                
+                <h3>Next Piece</h3>
+                <canvas id="next-canvas" width="120" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Controls info -->
+    <div class="controls-info">
+        <div class="control-item"><kbd>A</kbd> / <kbd>←</kbd> Move Left</div>
+        <div class="control-item"><kbd>D</kbd> / <kbd>→</kbd> Move Right</div>
+        <div class="control-item"><kbd>S</kbd> / <kbd>↓</kbd> Soft Drop</div>
+        <div class="control-item"><kbd>W</kbd> / <kbd>↑</kbd> Rotate</div>
+        <div class="control-item"><kbd>Space</kbd> Hard Drop</div>
+        <div class="control-item"><kbd>C</kbd> Hold</div>
+        <div class="control-item"><kbd>P</kbd> / <kbd>ESC</kbd> Pause</div>
+    </div>
+</div>
+
+<!-- Old therapist popup - kept for game over screen if needed -->
+<div id="therapist-popup" class="therapist-popup hidden">
+    <div class="therapist-content">
+        <div class="therapist-header">
+            <h3>Dr. Tetris, AI Therapist</h3>
+        </div>
+        <div class="therapist-message" id="therapist-message">
+            <!-- Roast will be inserted here -->
+        </div>
+        <button class="close-roast-btn" onclick="closeTherapistPopup()">Continue Session</button>
+    </div>
+</div>
+
+{% load static %}
+<script>
+// ============================================
+// HUMAN-LIKE VOICE SETUP (REQUIRED)
+// ============================================
+// IMPORTANT: Set API key BEFORE loading tetris.js
+
+// OPTION 1: ElevenLabs (BEST - Very human-like, British male voice)
+window.ELEVENLABS_API_KEY = 'sk_13fca72abd97e0b1f8b0e1c08af4cab12f28e4b7f5076b71';
+
+// Verify API key is set
+if (window.ELEVENLABS_API_KEY) {
+    console.log('✅ ElevenLabs API key is SET:', window.ELEVENLABS_API_KEY.substring(0, 15) + '...');
+    console.log('✅ Voice will be: Arnold (British male, deep, therapist-like)');
+} else {
+    console.error('❌ ElevenLabs API key is NOT SET!');
+}
+
+// OPTION 2: Google Cloud TTS (GOOD - Very human-like, more free credits)
+// window.GOOGLE_TTS_API_KEY = 'your-google-api-key-here';
+
+// ============================================
+</script>
+<script src="{% static 'js/tetris.js' %}"></script>
+{% endblock %}
+

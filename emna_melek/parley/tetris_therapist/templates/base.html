@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}Tetris Therapist{% endblock %}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% csrf_token %}
+    {% block content %}{% endblock %}
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
+

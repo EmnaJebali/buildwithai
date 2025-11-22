@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Tetris Therapist - Start Your Therapy Session{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+    <div class="landing-content">
+        <h1 class="neon-title">Tetris Therapist</h1>
+        <p class="subtitle">Professional Gameplay Analysis & Therapy</p>
+        <p class="description">
+            Welcome to your therapeutic gaming session. As you play Tetris,<br>
+            our AI therapist will observe your gameplay patterns and provide<br>
+            professional insights every 10 seconds. Discover what your<br>
+            Tetris strategy reveals about your decision-making process.
+        </p>
+        <a href="{% url 'game' %}" class="start-button">
+            <span>Start Therapy Session</span>
+        </a>
+        <div class="features">
+            <div class="feature">🎮 Full Tetris Game</div>
+            <div class="feature">🛋️ Professional Analysis</div>
+            <div class="feature">📊 Detailed Reports</div>
+            <div class="feature">💬 Honest Feedback</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
