@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Roasting Your Resume...{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-4xl">
+    <div class="text-center">
+        <h1 class="text-5xl font-black mb-8 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
+            🔥 ROASTING IN PROGRESS 🔥
+        </h1>
+        
+        <!-- Animated loading spinner -->
+        <div class="mb-8">
+            <div class="inline-block animate-spin text-6xl">🔥</div>
+        </div>
+        
+        <!-- Rotating funny messages -->
+        <div id="loading-message" class="text-2xl font-bold mb-4 text-red-400 min-h-[3rem]">
+            Summoning the Levels.fyi demons...
+        </div>
+        
+        <div class="text-gray-400 text-sm mb-8">
+            This may take a few seconds...
+        </div>
+        
+        <!-- HTMX polling -->
+        <div 
+            hx-get="{% url 'roast_status' task_id %}"
+            hx-trigger="every 2s"
+            hx-swap="outerHTML"
+            class="min-h-[200px]"
+        >
+            <div class="animate-pulse text-gray-500">Processing...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Rotating funny messages
+const messages = [
+    "Summoning the Levels.fyi demons...",
+    "Calculating how much you're underpaid...",
+    "Your resume is being publicly executed...",
+    "Consulting with toxic senior engineers...",
+    "Running your resume through the shredder...",
+    "Finding every typo and grammar mistake...",
+    "Comparing your TC to FAANG standards...",
+    "Detecting Web3/blockchain keywords...",
+    "Measuring your GitHub commit frequency...",
+    "Analyzing your LinkedIn cringe level...",
+    "Counting how many times you said 'passionate'...",
+    "Evaluating your tech stack from 2015...",
+    "Checking if you listed 'Microsoft Office' as a skill...",
+    "Calculating your realistic TC: $38k + ramen...",
+    "Preparing the nuclear roast protocol..."
+];
+
+let messageIndex = 0;
+const messageElement = document.getElementById('loading-message');
+
+function rotateMessage() {
+    messageElement.textContent = messages[messageIndex];
+    messageIndex = (messageIndex + 1) % messages.length;
+}
+
+// Rotate message every 2 seconds
+setInterval(rotateMessage, 2000);
+</script>
+{% endblock %}
+

@@ -1,0 +1,4 @@
+web: gunicorn brutalresumeroast.wsgi:application --bind 0.0.0.0:$PORT
+worker: celery -A brutalresumeroast worker --loglevel=info
+beat: celery -A brutalresumeroast beat --loglevel=info
+

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Brutal Resume Roast - Get Absolutely Destroyed{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- HTMX CDN -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Meta tags for viral sharing -->
+    <meta property="og:title" content="Brutal Resume Roast - Get Absolutely Destroyed">
+    <meta property="og:description" content="Upload your resume and get roasted by AI like a toxic senior engineer from Levels.fyi">
+    <meta property="og:image" content="https://via.placeholder.com/1200x630/1a1a1a/ff0000?text=BRUTAL+RESUME+ROAST">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    {% block content %}{% endblock %}
+</body>
+</html>
+

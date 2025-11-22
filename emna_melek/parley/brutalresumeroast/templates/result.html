@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Brutal Resume Roast{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-5xl">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-6xl font-black mb-4 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
+            🔥 BRUTAL RESUME ROAST 🔥
+        </h1>
+        <p class="text-xl text-gray-400">You asked for it. You got it.</p>
+    </div>
+
+    <!-- Roast Content -->
+    <div class="bg-gray-800 rounded-2xl p-8 md:p-12 border-2 border-red-600 shadow-2xl">
+        {% if result.image_url %}
+        <div class="mb-8 text-center">
+            <img src="{{ result.image_url }}" alt="Resume burning" class="mx-auto rounded-lg max-w-full">
+        </div>
+        {% endif %}
+        
+        <div class="prose prose-invert prose-lg max-w-none">
+            <div class="text-white text-lg leading-relaxed whitespace-pre-line font-mono">
+                {{ result.roast_text|linebreaks }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+        <a 
+            href="{% url 'index' %}" 
+            class="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white font-black text-xl py-4 px-8 rounded-xl transition-all transform hover:scale-105 text-center"
+        >
+            🔥 Roast Another Resume
+        </a>
+        
+        <button 
+            onclick="shareOnTwitter()"
+            class="bg-blue-500 hover:bg-blue-600 text-white font-black text-xl py-4 px-8 rounded-xl transition-all transform hover:scale-105"
+        >
+            🐦 Share on X (Twitter)
+        </button>
+    </div>
+
+    <!-- Share Text -->
+    <div class="mt-8 text-center text-gray-500 text-sm">
+        <p>Share your roast and watch your friends get destroyed too! 🔥</p>
+    </div>
+</div>
+
+<script>
+function shareOnTwitter() {
+    const text = encodeURIComponent("Just got my resume absolutely ROASTED by AI 🔥\n\nCheck it out: " + window.location.href);
+    const url = `https://twitter.com/intent/tweet?text=${text}`;
+    window.open(url, '_blank', 'width=550,height=420');
+}
+</script>
+{% endblock %}
+
