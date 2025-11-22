@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parley - Master a Language with Personality</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: {
+                        primary: '#6366F1',
+                        secondary: '#EC4899',
+                        accent: '#8B5CF6',
+                        dark: '#1F2937'
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'pulse-ring': 'pulseRing 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite'
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        pulseRing: { '0%': { transform: 'scale(0.8)', opacity: '0.5' }, '100%': { transform: 'scale(2)', opacity: '0' } }
+                    }
+                }
+            }
+        }
+    </script>
+        <style>
+        .glass-panel { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.3); }
+        .gradient-text { background: linear-gradient(to right, #6366F1, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .bubble-user { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; border-radius: 1.5rem 1.5rem 0 1.5rem; box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2); }
+        .bubble-teacher { background: white; color: #1F2937; border-radius: 1.5rem 1.5rem 1.5rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #F3F4F6; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        
+        /* Wrong Language Animation */
+        @keyframes shake-hard {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+        @keyframes shake-screen {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-10px, -10px) rotate(-2deg); }
+            20%, 40%, 60%, 80% { transform: translate(10px, 10px) rotate(2deg); }
+        }
+        .shake-animation {
+            animation: shake-hard 0.4s ease-in-out;
+            border: 2px solid #EF4444 !important;
+            background: #FEF2F2 !important;
+        }
+        .screen-shake {
+            animation: shake-screen 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        .slap-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 20rem;
+            z-index: 100;
+            pointer-events: none;
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .slap-active {
+            transform: translate(-50%, -50%) scale(1);
+            animation: shake-hard 0.3s;
+        }
+        #red-flash {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(239, 68, 68, 0.4);
+            z-index: 90;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+        .flash-active {
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 h-screen flex flex-col font-sans text-gray-900 overflow-hidden selection:bg-primary selection:text-white">
+
+    <!-- LANDING PAGE -->
+    <div id="landing-page" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 bg-[url('https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center">
+        <div class="absolute inset-0 bg-white/90 backdrop-blur-sm"></div>
+        
+        <div class="relative z-10 max-w-4xl w-full grid md:grid-cols-2 gap-12 items-center animate-slide-up">
+            <div class="space-y-6 text-center md:text-left">
+                <div class="inline-block px-4 py-1 rounded-full bg-indigo-100 text-indigo-700 text-sm font-bold tracking-wide mb-2">AI LANGUAGE TUTOR</div>
+                <h1 class="text-6xl font-extrabold tracking-tight leading-tight">
+                    Speak like a <br> <span class="gradient-text">Local.</span>
+                </h1>
+                <p class="text-gray-600 text-lg leading-relaxed">
+                    Ditch the boring textbooks. Practice real conversations with dramatic personalities who will roast your grammar and praise your accent.
+                </p>
+            </div>
+
+            <div class="glass-panel p-8 rounded-3xl shadow-2xl space-y-6 transform transition-all hover:scale-[1.02] duration-300">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">I want to learn</label>
+                    <select id="language-select" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-primary focus:outline-none transition-shadow">
+                        <option value="Spanish">Spanish 🇪🇸</option>
+                        <option value="French">French 🇫🇷</option>
+                        <option value="Japanese">Japanese 🇯🇵</option>
+                        <option value="German">German 🇩🇪</option>
+                        <option value="Italian">Italian 🇮🇹</option>
+                        <option value="Korean">Korean 🇰🇷</option>
+                        <option value="Chinese">Chinese 🇨🇳</option>
+                        <option value="Russian">Russian 🇷🇺</option>
+                        <option value="Portuguese">Portuguese 🇧🇷</option>
+                        <option value="Dutch">Dutch 🇳🇱</option>
+                        <option value="English">English 🇺🇸</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">My Teacher</label>
+                    <select id="teacher-select" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-primary focus:outline-none">
+                        <option value='{"name": "Lucía", "personality": "dramatic flamenco dancer who hates boring people"}'>Lucía (Dramatic Dancer)</option>
+                        <option value='{"name": "Maître Jules", "personality": "brutally honest Parisian waiter who judges your accent"}'>Maître Jules (Honest Waiter)</option>
+                        <option value='{"name": "Tanaka-san", "personality": "overly polite salaryman who apologizes for everything"}'>Tanaka-san (Polite Salaryman)</option>
+                        <option value='{"name": "Herr Müller", "personality": "super-direct Berliner techno enthusiast"}'>Herr Müller (Direct Berliner)</option>
+                        <option value='{"name": "Nonna Rosa", "personality": "loud Italian grandma who keeps feeding you virtual pasta"}'>Nonna Rosa (Loud Grandma)</option>
+                        <option value='{"name": "Ji-yeon", "personality": "savage K-drama best friend who is obsessed with fashion"}'>Ji-yeon (Savage Bestie)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Scenario / Mission</label>
+                    <select id="scenario-select" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-primary focus:outline-none">
+                        <option value="">💬 Free Chat (Open Practice)</option>
+                        <option value="You are a police officer. I am a driver you pulled over. I need to convince you I wasn't speeding.">👮 Traffic Stop (Persuasion)</option>
+                        <option value="You are a waiter at a secret underground restaurant. I want to order the secret menu item but don't know the password.">🕵️ Secret Restaurant (Mystery)</option>
+                        <option value="You are my dramatic partner breaking up with me because I forgot our anniversary.">💔 Dramatic Breakup (Emotional)</option>
+                        <option value="You are a busy doctor. I am a patient describing weird symptoms.">👨‍⚕️ Doctor Visit (Vocabulary)</option>
+                        <option value="You are a strict landlord. I am a tenant asking to keep a pet tiger.">🏘️ Landlord Negotiation (Debate)</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 space-y-3">
+                    <div class="flex flex-col">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Model</label>
+                        <select id="model-select" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary focus:outline-none">
+                            
+                            <option value="gemini-2.0-flash">Google (Gemini 2.0 Flash) - Free</option>
+                        </select>
+                    </div>
+
+                    <button onclick="startPracticing()" class="w-full py-4 rounded-xl font-bold text-white text-lg bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg shadow-indigo-500/30 transition-all transform active:scale-95">
+                        Start Chatting →
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="absolute bottom-6 text-gray-400 text-sm font-medium">
+            
+        </footer>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="main-app" class="flex-1 flex flex-col hidden h-screen bg-slate-100 transition-transform">
+        <div id="red-flash"></div>
+        <!-- NAVBAR -->
+        <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between z-20 sticky top-0">
+            <div class="flex items-center space-x-4">
+                <button onclick="goHome()" class="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <div id="teacher-avatar" class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-2xl shadow-md border-2 border-white">👤</div>
+                    <div>
+                        <h2 id="header-teacher-name" class="font-bold text-gray-900 text-lg leading-tight">Teacher</h2>
+                        <p id="header-language" class="text-xs text-gray-500 font-medium uppercase tracking-wide">Language</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-6">
+                <div class="hidden md:flex items-center space-x-2 bg-white border border-gray-200 rounded-full px-4 py-1.5 shadow-sm">
+                     <span class="text-sm font-bold text-amber-500 flex items-center gap-1">⚡ <span id="streak-display">0</span></span>
+                     <span class="text-gray-300">|</span>
+                     <span class="text-sm font-bold text-primary flex items-center gap-1">XP <span id="xp-display">0</span></span>
+                </div>
+                <button onclick="toggleBilingual()" id="bilingual-btn" class="text-xs font-bold border border-gray-300 rounded-full px-4 py-2 hover:bg-gray-50 transition-all uppercase tracking-wide">
+                    Bilingual Mode: OFF
+                </button>
+                 <button onclick="toggleFeedback()" class="relative p-2 text-gray-400 hover:text-primary transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full hidden" id="feedback-dot"></span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- CHAT AREA -->
+        <div class="flex-1 flex overflow-hidden">
+            <main id="chat-container" class="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide pb-32">
+                <!-- Messages injected here -->
+                <div class="text-center text-gray-400 text-sm mt-10 animate-pulse">Say "Hello" to start your session...</div>
+            </main>
+            
+            <!-- FEEDBACK SIDEBAR (Hidden by default on mobile) -->
+            <aside id="feedback-panel" class="w-80 bg-white border-l border-gray-200 p-6 hidden md:flex flex-col overflow-y-auto transform transition-transform duration-300">
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-800 text-lg flex items-center gap-2">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a1 1 0 001 1z"></path></svg>
+                        Feedback
+                    </h3>
+                    <p class="text-xs text-gray-500 mt-1">Live scoring and native corrections appear here.</p>
+                </div>
+                <div id="feedback-list" class="space-y-4 flex-1">
+                    <!-- Feedback items injected here -->
+                     <div class="text-sm text-gray-400 italic text-center mt-10">Speak (or type) to get real-time pronunciation feedback here.</div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- INPUT AREA -->
+        <div class="bg-white/90 backdrop-blur border-t border-gray-200 p-4 fixed bottom-0 w-full md:w-[calc(100%-20rem)] z-30 transition-all" id="input-bar">
+            <div id="slap-emoji" class="slap-overlay">👋</div>
+            <form onsubmit="sendMessage(event)" class="max-w-4xl mx-auto relative flex items-center gap-3">
+                
+                <!-- NEW: Mic Button -->
+                <button type="button" id="mic-btn" onclick="toggleListening()" class="bg-gray-100 text-gray-500 rounded-full p-4 hover:bg-indigo-100 hover:text-primary transition-all active:scale-95 relative">
+                     <div id="mic-pulse" class="absolute inset-0 rounded-full border-2 border-primary animate-pulse-ring hidden"></div>
+                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a1 1 0 001 1z"></path></svg>
+                </button>
+
+                <input type="text" id="message-input" class="flex-1 bg-gray-100 border-0 rounded-2xl px-6 py-4 focus:ring-2 focus:ring-primary focus:bg-white transition-all shadow-inner text-gray-800 placeholder-gray-400" placeholder="Type your message... (or /evaluate to finish)" autocomplete="off">
+                <button type="submit" class="bg-primary text-white rounded-2xl p-4 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 transform hover:scale-105 active:scale-95">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- REPORT MODAL -->
+    <div id="report-modal" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto transform scale-95 transition-transform duration-300" id="report-card">
+            <div class="h-32 bg-gradient-to-r from-primary to-secondary relative flex items-center justify-center">
+                <h2 class="text-4xl font-black text-white tracking-tight drop-shadow-md">REPORT CARD</h2>
+                <button onclick="closeReport()" class="absolute top-4 right-4 text-white/80 hover:text-white bg-white/20 rounded-full p-1 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-8 space-y-6">
+                <div id="report-content" class="prose prose-indigo max-w-none text-gray-600 leading-relaxed">
+                    <!-- Report Content -->
+                </div>
+                <button onclick="closeReport()" class="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-colors shadow-lg">
+                    Back to Home
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- STATE ---
+    const state = {
+        language: 'Spanish',
+        teacher: { name: 'Lucía', personality: 'dramatic flamenco dancer' },
+        bilingual: localStorage.getItem('parley_bilingual') === 'true',
+        apiKey: localStorage.getItem('parley_api_key') || '',
+        model: 'gpt-4o-mini',
+        xp: parseInt(localStorage.getItem('parley_xp') || '0'),
+        streak: parseInt(localStorage.getItem('parley_streak') || '0'),
+        lastActive: localStorage.getItem('parley_last_active'),
+        chatHistory: [],
+        recognition: null,
+        isListening: false
+    };
+
+    // --- INIT ---
+    function init() {
+        updateStats();
+        initSpeech();
+        updateBilingualUI();
+    }
+
+    function initSpeech() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            state.recognition = new SpeechRecognition();
+            state.recognition.continuous = false;
+            state.recognition.interimResults = false;
+
+            state.recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('message-input').value = transcript;
+                toggleListening(); // Stop listening after capture
+                // Optionally auto-send: sendMessage(new Event('submit'));
+            };
+
+            state.recognition.onerror = (event) => {
+                console.error('Speech error', event.error);
+                toggleListening(); 
+            };
+            
+            state.recognition.onend = () => {
+                 if(state.isListening) toggleListening();
+            };
+        } else {
+            document.getElementById('mic-btn').style.display = 'none';
+        }
+    }
+
+    function updateStats() {
+        document.getElementById('xp-display').innerText = state.xp;
+        document.getElementById('streak-display').innerText = state.streak;
+    }
+
+    // --- AUDIO LOGIC ---
+    function toggleListening() {
+        if (!state.recognition) return;
+
+        const btn = document.getElementById('mic-btn');
+        const pulse = document.getElementById('mic-pulse');
+
+        if (state.isListening) {
+            state.recognition.stop();
+            state.isListening = false;
+            btn.classList.remove('text-primary', 'bg-indigo-100');
+            btn.classList.add('text-gray-500', 'bg-gray-100');
+            pulse.classList.add('hidden');
+        } else {
+            // Set language based on selection? 
+            // Actually for INPUT we want to speak the target language? 
+            // Or English if beginner? Usually target language.
+            state.recognition.lang = getLangCode(state.language);
+            state.recognition.start();
+            state.isListening = true;
+            btn.classList.add('text-primary', 'bg-indigo-100');
+            btn.classList.remove('text-gray-500', 'bg-gray-100');
+            pulse.classList.remove('hidden');
+        }
+    }
+
+    function speakText(text) {
+        if (!('speechSynthesis' in window)) return;
+        
+        // Stop any current speech
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = getLangCode(state.language);
+        
+        // Try to select a voice matching the lang
+        const voices = window.speechSynthesis.getVoices();
+        const voice = voices.find(v => v.lang.includes(getLangCode(state.language)));
+        if (voice) utterance.voice = voice;
+
+        // Optional: Pitch shift based on personality?
+        // if (state.teacher.name === 'Maître Jules') utterance.pitch = 0.8;
+        
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function getLangCode(lang) {
+        const codes = {
+            'Spanish': 'es-ES', 'French': 'fr-FR', 'Japanese': 'ja-JP', 
+            'German': 'de-DE', 'Italian': 'it-IT', 'Korean': 'ko-KR',
+            'Chinese': 'zh-CN', 'Russian': 'ru-RU', 'Portuguese': 'pt-BR',
+            'Dutch': 'nl-NL', 'Turkish': 'tr-TR', 'Arabic': 'ar-SA',
+            'Hindi': 'hi-IN', 'Swedish': 'sv-SE', 'English': 'en-US'
+        };
+        return codes[lang] || 'en-US';
+    }
+
+    function toggleSettings() {
+         const apiKeyInput = document.getElementById('api-key-input');
+         apiKeyInput.classList.toggle('hidden');
+    }
+    
+    // --- NAVIGATION ---
+    function startPracticing() {
+        const langSelect = document.getElementById('language-select');
+        const teacherSelect = document.getElementById('teacher-select');
+        const modelSelect = document.getElementById('model-select');
+        const scenarioSelect = document.getElementById('scenario-select');
+        
+        state.language = langSelect.value;
+        state.teacher = JSON.parse(teacherSelect.value);
+        state.model = modelSelect.value;
+        state.scenario = scenarioSelect.value;
+        state.chatHistory = [];
+
+        // UI Transitions
+        document.getElementById('landing-page').classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => {
+            document.getElementById('landing-page').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+        }, 500);
+        
+        document.getElementById('header-teacher-name').innerText = state.teacher.name;
+        document.getElementById('header-language').innerText = state.language;
+        document.getElementById('teacher-avatar').innerText = getAvatar(state.language);
+        document.getElementById('chat-container').innerHTML = ''; 
+        document.getElementById('feedback-list').innerHTML = '<div class="text-sm text-gray-400 italic text-center mt-10">Speak (or type) to get real-time pronunciation feedback here.</div>';
+
+        // Initial Greeting
+        setTimeout(() => {
+             const greeting = `*${state.teacher.name} looks at you expectantly.*`;
+             addMessage("teacher", greeting);
+             // Note: Usually we don't speak the *actions*, only dialogue.
+             // But for now simplicity:
+             // speakText(greeting); 
+        }, 600);
+    }
+
+    function goHome() {
+        location.reload();
+    }
+
+    function toggleFeedback() {
+        const panel = document.getElementById('feedback-panel');
+        const inputBar = document.getElementById('input-bar');
+        panel.classList.toggle('hidden');
+        if(panel.classList.contains('hidden')) {
+             inputBar.style.width = "100%";
+        } else {
+             if(window.innerWidth >= 768) inputBar.style.width = "calc(100% - 20rem)";
+        }
+    }
+
+    function toggleBilingual() {
+        state.bilingual = !state.bilingual;
+        localStorage.setItem('parley_bilingual', state.bilingual);
+        updateBilingualUI();
+    }
+
+    function updateBilingualUI() {
+        const btn = document.getElementById('bilingual-btn');
+        if (state.bilingual) {
+            btn.innerHTML = 'Bilingual Mode: <span class="text-primary">ON</span>';
+            btn.classList.add('border-primary', 'bg-indigo-50');
+        } else {
+            btn.innerHTML = 'Bilingual Mode: <span class="text-gray-400">OFF</span>';
+            btn.classList.remove('border-primary', 'bg-indigo-50');
+        }
+    }
+
+    async function sendMessage(e) {
+        e.preventDefault();
+        const input = document.getElementById('message-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        input.value = '';
+        addMessage('user', text);
+        state.chatHistory.push({ role: "user", content: text });
+        incrementXP(10);
+
+        if (text.toLowerCase() === '/evaluate') {
+            handleEvaluate();
+            return;
+        }
+
+        showTyping();
+
+        try {
+            const response = await fetch('/api/chat/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: text,
+                    history: state.chatHistory.slice(-6),
+                    config: {
+                        apiKey: state.apiKey,
+                        model: state.model,
+                        teacherName: state.teacher.name,
+                        teacherPersonality: state.teacher.personality,
+                        targetLanguage: state.language,
+                        bilingualMode: state.bilingual,
+                        scenario: state.scenario // Pass scenario to backend
+                    }
+                })
+            });
+            const data = await response.json();
+            removeTyping();
+            
+            if (data.error) {
+                addMessage('teacher', "⚠️ Error: " + data.error);
+                return;
+            }
+
+            addMessage('teacher', data.reply);
+            state.chatHistory.push({ role: "assistant", content: data.reply });
+            
+            // Speak the reply automatically
+            speakText(data.reply);
+
+            // Check for wrong language from backend response
+            if (data.is_wrong_language) {
+                triggerWrongLanguageAnimation();
+            }
+
+            // Add Feedback to Sidebar
+            addFeedbackCard(text, data.shadow);
+
+        } catch (err) {
+            removeTyping();
+            addMessage('teacher', "⚠️ Connection error.");
+        }
+    }
+
+    function triggerWrongLanguageAnimation() {
+        // 1. Shake Input Bar
+        const inputBar = document.getElementById('input-bar');
+        inputBar.classList.add('shake-animation');
+        setTimeout(() => inputBar.classList.remove('shake-animation'), 400);
+
+        // 2. Slap Animation (Overlay)
+        const slap = document.getElementById('slap-emoji');
+        slap.classList.add('slap-active');
+        setTimeout(() => slap.classList.remove('slap-active'), 800);
+
+        // 3. Screen Shake
+        const app = document.getElementById('main-app');
+        app.classList.add('screen-shake');
+        setTimeout(() => app.classList.remove('screen-shake'), 500);
+
+        // 4. Red Flash
+        const flash = document.getElementById('red-flash');
+        flash.classList.add('flash-active');
+        setTimeout(() => flash.classList.remove('flash-active'), 300);
+        
+        // 5. Vibrate (mobile)
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    }
+
+    async function handleEvaluate() {
+        const modal = document.getElementById('report-modal');
+        const card = document.getElementById('report-card');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+             modal.classList.remove('opacity-0');
+             card.classList.remove('scale-95');
+        }, 10);
+        
+        document.getElementById('report-content').innerHTML = '<div class="flex flex-col items-center py-10"><div class="w-12 h-12 border-4 border-indigo-200 border-t-primary rounded-full animate-spin mb-4"></div><p class="text-gray-500 font-medium">Grading your performance...</p></div>';
+        
+        const transcript = state.chatHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
+        
+        try {
+            const response = await fetch('/api/evaluate/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    transcript: transcript,
+                    config: {
+                        apiKey: state.apiKey,
+                        model: state.model,
+                        teacherName: state.teacher.name
+                    }
+                })
+            });
+            const data = await response.json();
+            
+            incrementXP(100);
+            confetti({ particleCount: 250, spread: 120, origin: { y: 0.5 } });
+
+            // Beautiful Report Rendering
+            let html = data.report
+                .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-primary mb-4">$1</h1>')
+                .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-gray-800 mt-6 mb-2">$1</h2>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-indigo-600">$1</strong>')
+                .replace(/\n/g, '<br>');
+            
+            document.getElementById('report-content').innerHTML = html;
+
+        } catch (err) {
+            document.getElementById('report-content').innerText = "Failed to generate report.";
+        }
+    }
+
+    function closeReport() {
+        const modal = document.getElementById('report-modal');
+        const card = document.getElementById('report-card');
+        modal.classList.add('opacity-0');
+        card.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+        location.reload(); 
+    }
+
+    // --- UI HELPERS ---
+    function addMessage(role, text) {
+        const container = document.getElementById('chat-container');
+        const div = document.createElement('div');
+        const isUser = role === 'user';
+        
+        // Speaker button for teacher
+        let speakerBtn = '';
+        if (!isUser) {
+             // Use encodeURIComponent to safely put text in onclick, but be careful with quotes.
+             // Better to just pass text to speakText via reference or just rely on auto-speak.
+             // Let's add a simple clickable icon.
+             speakerBtn = `<button onclick="speakText(this.parentElement.innerText)" class="ml-2 text-gray-400 hover:text-primary"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg></button>`;
+        }
+
+        div.className = `flex w-full ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in items-end`;
+        div.innerHTML = `
+            <div class="max-w-[85%] md:max-w-[70%] p-4 text-[15px] leading-relaxed ${isUser ? 'bubble-user' : 'bubble-teacher'} group relative">
+                ${text.replace(/\n/g, '<br>')}
+                ${!isUser ? '<div class="absolute -right-8 bottom-2 opacity-0 group-hover:opacity-100 transition-opacity">' + speakerBtn + '</div>' : ''}
+            </div>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function addFeedbackCard(userText, shadowText) {
+        if (!shadowText) return;
+        const scoreMatch = shadowText.match(/Score:\s*(\d+)/);
+        const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+        const native = shadowText.split('Shadow →')[1] || shadowText;
+
+        const list = document.getElementById('feedback-list');
+        if(list.children[0]?.classList.contains('text-center')) list.innerHTML = ''; // Clear placeholder
+
+        const div = document.createElement('div');
+        div.className = "bg-slate-50 rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow animate-fade-in";
+        div.innerHTML = `
+            <div class="flex justify-between items-center mb-2">
+                <div class="text-xs text-gray-400 font-mono truncate max-w-[100px]" title="${userText}">"${userText}"</div>
+                <span class="text-xs font-bold px-2 py-1 rounded ${score > 80 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+                    ${score}%
+                </span>
+            </div>
+            <div class="text-sm font-medium text-gray-700 mb-1">Better way:</div>
+            <div class="text-sm text-primary italic flex justify-between items-center">
+                <span>"${native.replace(/"/g, '').trim()}"</span>
+                <button onclick="speakText('${native.replace(/"/g, '').replace(/'/g, "\\'").trim()}')" class="text-gray-400 hover:text-primary ml-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                </button>
+            </div>
+        `;
+        list.prepend(div);
+        
+        // Notify badge
+        const badge = document.getElementById('feedback-dot');
+        badge.classList.remove('hidden');
+        setTimeout(() => badge.classList.add('hidden'), 3000);
+    }
+
+    function showTyping() {
+        const container = document.getElementById('chat-container');
+        const div = document.createElement('div');
+        div.id = 'typing-indicator';
+        div.className = "flex w-full justify-start";
+        div.innerHTML = `
+            <div class="bg-white border border-gray-100 p-4 rounded-3xl rounded-bl-none shadow-sm flex space-x-1 items-center h-12">
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function removeTyping() {
+        const el = document.getElementById('typing-indicator');
+        if (el) el.remove();
+    }
+
+    function incrementXP(amount) {
+        state.xp += amount;
+        localStorage.setItem('parley_xp', state.xp);
+        updateStats();
+    }
+
+    function getAvatar(lang) {
+        const flags = { 'Spanish': '🇪🇸', 'French': '🇫🇷', 'Japanese': '🇯🇵', 'German': '🇩🇪', 'Italian': '🇮🇹', 'Korean': '🇰🇷' };
+        return flags[lang] || '🌍';
+    }
+    
+    init();
+</script>
+</body>
+</html>
