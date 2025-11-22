@@ -1,0 +1,9 @@
+django
+chromadb
+langchain
+langchain-community
+langchain-groq
+sentence-transformers
+python-dotenv
+django-htmx
+whitenoise
